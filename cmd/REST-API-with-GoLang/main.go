@@ -24,9 +24,9 @@ func main() {
 		Handler: router,
 	}
 
-	fmt.Println("Server started")
+	fmt.Printf("Server started %s", cfg.HTTPServer.Addr)
 	err := server.ListenAndServe()
 	if err != nil {
-		log.Fatal("Fail to start server")
+		log.Fatalf("failed to start server: %v", err)
 	}
 }
