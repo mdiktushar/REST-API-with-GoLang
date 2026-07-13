@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
@@ -29,8 +28,7 @@ func main() {
 		Addr:    cfg.Addr,
 		Handler: router,
 	}
-
-	fmt.Printf("Server started %s", cfg.HTTPServer.Addr)
+	slog.Info("Server started", slog.String("address", cfg.HTTPServer.Addr))
 
 	done := make(chan os.Signal, 1)
 
