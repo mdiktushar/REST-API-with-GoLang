@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"log/slog"
 	"net/http"
 
 	"github.com/mdiktushar/REST-API-with-GoLang/internal/types"
@@ -22,9 +21,12 @@ func New() http.HandlerFunc {
 			return
 		}
 
-		slog.Info("creating a student")
+		if err != nil {
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
+			return
+		}
 
-		response.WriteJson(w, http.StatusCreated, map[string] string {"success": "Ok"})
+		response.WriteJson(w, http.StatusCreated, map[string]string{"success": "Ok"})
 
 	}
 }
