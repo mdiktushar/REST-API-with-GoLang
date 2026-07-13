@@ -28,7 +28,7 @@ go.work.sum
 .env
 
 config/local.yaml
-storage.db
+/storage
 
 # Editor/IDE
 # .idea/
