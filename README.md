@@ -1,43 +1,198 @@
-# REST API with GoLang
+# Student REST API with Go
 
-A small Go project scaffold for building a student REST API.
+A REST API for managing student records, built with Go's standard `net/http`
+router and SQLite. The application supports creating, reading, updating, and
+deleting students, validates incoming JSON, and loads its settings from YAML.
 
-At the moment, the application entry point prints a welcome message. The README is structured so the project can grow naturally as API routes, persistence, configuration, and tests are added.
+## Features
 
-## Project Structure
-
-```text
-.
-├── cmd/
-│   └── REST-API-with-GoLang/
-│       └── main.go
-├── go.mod
-└── README.md
-```
+- Student CRUD endpoints
+- SQLite persistence with automatic table creation
+- Request validation using `go-playground/validator`
+- YAML configuration with `cleanenv`
+- Structured application logging
+- Graceful HTTP server shutdown
 
 ## Requirements
 
-- Go `1.26.3` or compatible
+- Go `1.26.3` or a compatible version
+- A C compiler, such as GCC, for the `go-sqlite3` CGO dependency
+- `curl` or another HTTP client for trying the API
 
 ## Getting Started
 
-Clone the repository:
+Clone the repository and enter the project directory:
 
 ```bash
 git clone https://github.com/mdiktushar/REST-API-with-GoLang.git
 cd REST-API-with-GoLang
 ```
 
-Run the application:
+Download the dependencies:
 
 ```bash
-go run ./cmd/REST-API-with-GoLang
+go mod download
 ```
 
-Expected output:
+Create a local configuration file and the SQLite storage directory:
+
+```bash
+cp config/example.yaml config/local.yaml
+mkdir -p storage
+```
+
+The example configuration starts the server at `http://localhost:8082` and
+stores data in `storage/storage.db`:
+
+```yaml
+env: "dev"
+storage_path: "storage/storage.db"
+http_server:
+  address: "localhost:8082"
+```
+
+Run the API by passing the configuration file as a flag:
+
+```bash
+go run ./cmd/REST-API-with-GoLang -config config/local.yaml
+```
+
+You can alternatively set `CONFIG_PATH`:
+
+```bash
+CONFIG_PATH=config/local.yaml go run ./cmd/REST-API-with-GoLang
+```
+
+The `students` table is created automatically when the application starts.
+Stop the server gracefully with `Ctrl+C`.
+
+## API Endpoints
+
+The base URL for the example configuration is `http://localhost:8082`.
+
+| Method | Endpoint | Description |
+| --- | --- | --- |
+| `POST` | `/api/students` | Create a student |
+| `GET` | `/api/students` | Get all students |
+| `GET` | `/api/students/{id}` | Get a student by ID |
+| `PUT` | `/api/students/{id}` | Update a student |
+| `DELETE` | `/api/students/{id}` | Delete a student |
+
+### Create a student
+
+```bash
+curl -X POST http://localhost:8082/api/students \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Tushar","email":"tushar@gmail.com","age":15}'
+```
+
+Response (`201 Created`):
+
+```json
+{
+  "id": 1
+}
+```
+
+The `name`, `email`, and `age` fields are required.
+
+### Get all students
+
+```bash
+curl http://localhost:8082/api/students
+```
+
+Response (`200 OK`):
+
+```json
+[
+  {
+    "id": 1,
+    "name": "Tushar",
+    "email": "tushar@gmail.com",
+    "age": 15
+  }
+]
+```
+
+### Get a student by ID
+
+```bash
+curl http://localhost:8082/api/students/1
+```
+
+Response (`200 OK`):
+
+```json
+{
+  "id": 1,
+  "name": "Tushar",
+  "email": "tushar@gmail.com",
+  "age": 15
+}
+```
+
+### Update a student
+
+```bash
+curl -X PUT http://localhost:8082/api/students/1 \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Tushar Ahmed","email":"tushar@gmail.com","age":16}'
+```
+
+Response (`200 OK`):
+
+```json
+{
+  "id": 1,
+  "name": "Tushar Ahmed",
+  "email": "tushar@gmail.com",
+  "age": 16
+}
+```
+
+### Delete a student
+
+```bash
+curl -X DELETE http://localhost:8082/api/students/1
+```
+
+Response (`200 OK`):
+
+```json
+{
+  "message": "Student deleted successfully"
+}
+```
+
+### Error response
+
+Invalid requests return a JSON response in this format:
+
+```json
+{
+  "status": "Error",
+  "error": "field Name is required field"
+}
+```
+
+## Project Structure
 
 ```text
-Welcome to students api
+.
+├── cmd/REST-API-with-GoLang/
+│   └── main.go                  # Application entry point and routes
+├── config/
+│   └── example.yaml            # Example application configuration
+├── internal/
+│   ├── config/                 # Configuration loading
+│   ├── http/handlers/student/  # Student HTTP handlers
+│   ├── storage/                # Storage interface
+│   │   └── sqlite/             # SQLite implementation
+│   ├── types/                  # Student model
+│   └── utils/response/         # JSON response helpers
+├── go.mod
+└── README.md
 ```
 
 ## Development
@@ -48,39 +203,18 @@ Format the code:
 go fmt ./...
 ```
 
-Run tests:
+Run all tests and compile every package:
 
 ```bash
 go test ./...
 ```
 
-Build the application:
+Build the API:
 
 ```bash
 go build ./cmd/REST-API-with-GoLang
 ```
 
-## Planned API
-
-This project is intended to become a REST API for managing student data. Possible future endpoints include:
-
-| Method | Endpoint | Description |
-| --- | --- | --- |
-| `GET` | `/students` | List all students |
-| `GET` | `/students/{id}` | Get a single student |
-| `POST` | `/students` | Create a student |
-| `PUT` | `/students/{id}` | Update a student |
-| `DELETE` | `/students/{id}` | Delete a student |
-
-## Roadmap
-
-- Add HTTP server setup
-- Add student routes and handlers
-- Add request and response models
-- Add validation
-- Add database integration
-- Add unit and integration tests
-
 ## License
 
-Add a license before publishing or distributing this project.
+No license has been added yet.
